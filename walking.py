@@ -58,43 +58,61 @@ class InverseKinematics(Node):
 
         # Keyframes of a single leg's cycle, in the leg's own frame. The per-leg
         # offsets below place them under the correct hip.
+        # touch_down_position = np.array([0.05, 0.0, -0.14])
         touch_down_position = np.array([0.05, 0.0, -0.14])
         stand_position_1 = np.array([0.025, 0.0, -0.14])
         stand_position_2 = np.array([0.0, 0.0, -0.14])
         stand_position_3 = np.array([-0.025, 0.0, -0.14])
+        # liftoff_position = np.array([-0.05, 0.0, -0.14])
         liftoff_position = np.array([-0.05, 0.0, -0.14])
         mid_swing_position = np.array([0.0, 0.0, -0.05])
 
         ## trotting
         # TODO 7: Implement each leg's trajectory in the trotting gait.
         rf_ee_offset = np.array([0.06, -0.09, 0])
+        # rf = right front 
         rf_ee_triangle_positions = np.array([
-            ################################################################################################
-            # TODO 7: Implement the trotting gait
-            ################################################################################################
+           touch_down_position, 
+           stand_position_1, 
+           stand_position_2,
+           stand_position_3,
+           liftoff_position,    
+           mid_swing_position
         ]) + rf_ee_offset
 
+        # lf = left front 
         lf_ee_offset = np.array([0.06, 0.09, 0])
         lf_ee_triangle_positions = np.array([
-            ################################################################################################
-            # TODO 7: Implement the trotting gait
-            ################################################################################################
+            stand_position_3,
+            liftoff_position,
+            mid_swing_position,
+            touch_down_position, 
+            stand_position_1, 
+            stand_position_2,      
         ]) + lf_ee_offset
 
+        # right back 
         rb_ee_offset = np.array([-0.11, -0.09, 0])
         rb_ee_triangle_positions = np.array([
-            ################################################################################################
-            # TODO 7: Implement the trotting gait
-            ################################################################################################
+            stand_position_3,
+            liftoff_position,
+            mid_swing_position,
+            touch_down_position, 
+            stand_position_1, 
+            stand_position_2,             
         ]) + rb_ee_offset
 
+        # left back 
         lb_ee_offset = np.array([-0.11, 0.09, 0])
         lb_ee_triangle_positions = np.array([
-            ################################################################################################
-            # TODO 7: Implement the trotting gait
-            ################################################################################################
+           touch_down_position, 
+           stand_position_1, 
+           stand_position_2,
+           stand_position_3,
+           liftoff_position,
+           mid_swing_position
         ]) + lb_ee_offset
-
+        
         self.ee_triangle_positions = [rf_ee_triangle_positions, lf_ee_triangle_positions, rb_ee_triangle_positions, lb_ee_triangle_positions]
         self.fk_functions = LEG_FK
 
@@ -132,7 +150,24 @@ class InverseKinematics(Node):
         # six keyframes instead of three.
         ################################################################################################
 
-        return
+        # Interpolate between the three triangle positions in self.ee_triangle_positions
+        # based on the current time t
+
+        # positions = self.ee_triangle_positions[leg_index]
+        # vertex_times = np.linspace(0, 1, 6)
+        # x_new = np.interp(t, vertex_times, positions[:, 0], period=6)
+        # y_new = np.interp(t, vertex_times, positions[:, 1], period=6)
+        # z_new = np.interp(t, vertex_times, positions[:, 2], period=6)
+        # return [x_new, y_new, z_new]
+
+        t %= 1
+        vertex_times = np.linspace(0, 1, 7) # 6 keyframes + wrap-around
+        P = np.vstack([self.ee_triangle_positions[leg_index], self.ee_triangle_positions[leg_index][0]]) # wrap around to the first vertex for times
+        x_new = np.interp(t, vertex_times, P[:, 0])
+        y_new = np.interp(t, vertex_times, P[:, 1])
+        z_new = np.interp(t, vertex_times, P[:, 2])
+        return [x_new, y_new, z_new]
+
 
     def cache_target_joint_positions(self):
         # Calculate and store the target joint positions for a cycle and all 4 legs
